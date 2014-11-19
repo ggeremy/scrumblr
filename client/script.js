@@ -360,7 +360,6 @@ function createCard(id, text, x, y, rot, colour) {
     };
 
     sendAction(action, data);
-
 }
 
 function randomCardColour() {
@@ -680,6 +679,20 @@ function adjustCard(offsets, doSync) {
 
 $(function() {
 
+    /**
+     * @returns {number} random rotation (+/- 10deg)
+     */
+    function randomRotation() {
+        return Math.random() * 10 - 5;
+    }
+
+    /**
+     * @returns {number}
+     */
+    function getUniqueId() {
+        return Math.round(Math.random() * 99999999); // is this big enough to assure uniqueness?
+    }
+
 
 	//disable image dragging
 	//window.ondragstart = function() { return false; };
@@ -693,14 +706,11 @@ $(function() {
 
     $("#create-card")
         .click(function() {
-            var rotation = Math.random() * 10 - 5; //add a bit of random rotation (+/- 10deg)
-            uniqueID = Math.round(Math.random() * 99999999); //is this big enough to assure uniqueness?
-            //alert(uniqueID);
             createCard(
-                'card' + uniqueID,
+                'card' + getUniqueId(),
                 '',
                 58, $('div.board-outline').height(), // hack - not a great way to get the new card coordinates, but most consistant ATM
-                rotation,
+                randomRotation(),
                 randomCardColour());
         });
 
@@ -839,5 +849,22 @@ $(function() {
         containment: 'parent'
     });
 
+    (function() {
+        var $board = $(document.getElementById('board')),
+            boardOffset = $board.offset(),
 
+            shadeWidth = 35,
+            rotationFix = 25;
+
+        $board.on('dblclick', function(event) {
+            createCard(
+                'card' + getUniqueId(),
+                '',
+                event.pageX - boardOffset.left - shadeWidth,
+                event.pageY - boardOffset.top - rotationFix,
+                randomRotation(),
+                randomCardColour()
+            );
+        });
+    }());
 });
