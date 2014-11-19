@@ -215,7 +215,7 @@ function drawNewCard(id, text, x, y, rot, colour, sticker, animationspeed) {
         var data = {
             id: this.id,
             position: ui.position,
-            oldposition: ui.originalPosition,
+            oldposition: ui.originalPosition
         };
 
         sendAction('moveCard', data);
@@ -295,7 +295,7 @@ function drawNewCard(id, text, x, y, rot, colour, sticker, animationspeed) {
         cssclass: 'card-edit-form',
         placeholder: 'Double Click to Edit.',
         onblur: 'submit',
-        event: 'dblclick', //event: 'mouseover'
+        event: 'dblclick' //event: 'mouseover'
     });
 
     //add applicable sticker
@@ -424,7 +424,7 @@ function drawNewColumn(columnName) {
         width: '',
         height: '',
         xindicator: '<img src="/images/ajax-loader.gif">',
-        event: 'dblclick', //event: 'mouseover'
+        event: 'dblclick' //event: 'mouseover'
     });
 
     $('.col:last').fadeIn(1500);
@@ -808,7 +808,7 @@ $(function() {
         minWidth: 700,
         minHeight: 400,
         maxWidth: 3200,
-        maxHeight: 1800,
+        maxHeight: 1800
     });
 
     //A new scope for precalculating
