@@ -1,6 +1,12 @@
 # Modify gittag appropriately
-%define gittag  96e0a0
+%define gittag  XXXXXX
 %define instdir %{nodejs_sitelib}/scrumblr
+
+%if 0%{?rhel} > 6 || 0%{?fedora}
+%global initscript 0
+%else
+%global initscript 1
+%endif
 
 Name:           scrumblr
 Version:        0.2.0
@@ -19,10 +25,21 @@ Source0:        %{name}-%{version}-git%{gittag}.tar.gz
 
 BuildRequires:  nodejs-packaging
 Requires:       nodejs, npm
+%if %{initscript}
+Requires:       daemonize
+Requires(post): chkconfig
+Requires(preun):chkconfig
+# This is for /sbin/service
+Requires(preun):initscripts
+Requires(postun):initscripts
+%endif
 
 %description
 Web-based simulation of a physical agile sprint board that supports real-time
 collaboration.
+
+%prep
+%setup -q -n %{name}-%{version}-git%{gittag}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -33,6 +50,12 @@ tar -C $RPM_BUILD_ROOT%{instdir}/ --strip-components=1 -xf %{SOURCE0}
 # Remove unwanted files
 find $RPM_BUILD_ROOT%{instdir} -name '.git*' -o -name '.node*' | xargs rm -f
 
+# Init script
+%if %{initscript}
+mkdir -p $RPM_BUILD_ROOT%{_initddir}
+install -m 755 scrumblr.init $RPM_BUILD_ROOT%{_initddir}/scrumblr
+%endif
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -40,11 +63,30 @@ rm -rf $RPM_BUILD_ROOT
 pushd %{instdir}
 npm install
 popd
+%if %{initscript}
+/sbin/chkconfig --add %{name}
+%endif
+
+%if %{initscript}
+%preun
+if [ $1 -eq 0 ] ; then
+    /sbin/service %{name} stop >/dev/null 2>&1
+    /sbin/chkconfig --del %{name}
+fi
+
+%postun
+if [ "$1" -ge "1" ] ; then
+    /sbin/service %{name} condrestart >/dev/null 2>&1 || :
+fi
+%endif
 
 %files
 %defattr(-,root,root,-)
 %dir %{instdir}
 %{instdir}/*
+%if %{initscript}
+%{_initddir}/scrumblr
+%endif
 
 %changelog
 * Thu Dec 28 2014 Adam Tkac <adam.tkac@gooddata.com>
