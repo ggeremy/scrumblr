@@ -199,11 +199,21 @@ h2 {
     float: left;
 }
 
+.rows {
+    width: 1000px;
+}
+
+.rows:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
 .names {
-    padding-left: 10px;
-    width: 980px;
+    float: left;
+    width: 50%;
     text-align: right;
-    color: #bbb;
+    color: #999;
     letter-spacing: 4px;
     font-family: "Helvetica Neue Light", "HelveticaNeue-Light", 'Helvetica Neue', arial, serif;
     font-size: 13px;
@@ -225,7 +235,8 @@ h2 {
 }
 
 .names input {
-    padding: 0; //2px 8px 2px 2px;
+    padding: 0;
+    /*2px 8px 2px 2px;*/
     border: none;
     outline: 0;
     width: 100px;
@@ -253,7 +264,7 @@ h2 {
     background: none;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
     border-radius: 10px;
-    color: #aaa;
+    color: #333;
     text-align: right;
     font-family: "Helvetica Neue Light", "HelveticaNeue-Light", 'Helvetica Neue', arial, serif;
     font-size: 13px;
@@ -262,7 +273,7 @@ h2 {
 }
 
 .names .focused {
-    color: #444;
+    color: #222;
 }
 
 .you-text {

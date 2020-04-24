@@ -625,6 +625,9 @@ function updateName(sid, name) {
 function boardResizeHappened(event, ui) {
     var newsize = ui.size;
 
+    $(".stickers").width(newsize.width);
+    $(".rows").width(newsize.width);
+
     sendAction('setBoardSize', newsize);
 }
 
@@ -633,6 +636,8 @@ function resizeBoard(size) {
         height: size.height,
         width: size.width
     });
+    $(".stickers").width(size.width);
+    $(".rows").width(size.width);
 }
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
