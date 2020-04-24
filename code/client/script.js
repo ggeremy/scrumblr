@@ -725,6 +725,11 @@ $(function() {
             createCard("yellow");
         });
 
+    $("#pink-card")
+        .click(function() {
+            createCard("pink");
+        });
+
 
 
     // Style changer
