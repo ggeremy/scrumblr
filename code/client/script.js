@@ -147,6 +147,10 @@ function getMessage(m) {
             resizeBoard(message.data);
             break;
 
+        case 'export':
+            download(message.data.filename, message.data.text);
+            break;
+
         default:
             //unknown message
             alert('unknown action: ' + JSON.stringify(message));
@@ -689,6 +693,23 @@ function adjustCard(offsets, doSync) {
     });
 }
 
+function download(filename, text) {
+    var element = document.createElement('a');
+    var mime = 'text/plain';
+    if (filename.match(/.csv$/)) {
+        mime = 'text/csv';
+    }
+    element.setAttribute('href', 'data:' + mime + ';charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
@@ -704,6 +725,15 @@ $(function() {
 
     //setTimeout($.unblockUI, 2000);
 
+    $('#export-json').click(function() {
+        socket.json.send({
+            action: 'exportJson',
+            data: {
+                width: $('.board-outline').css('width').replace('px', ''),
+                height: $('.board-outline').css('height').replace('px', '')
+            }
+        });
+    })
 
     $("#white-card")
         .click(function() {

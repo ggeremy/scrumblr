@@ -296,6 +296,10 @@ io.sockets.on('connection', function(client) {
                 broadcastToRoom(client, { action: 'setBoardSize', data: size });
                 break;
 
+            case 'exportJson':
+                exportJson(client, message.data);
+                break;
+
             default:
                 //console.log('unknown action');
                 break;
@@ -465,6 +469,36 @@ function cleanAndInitializeDemoRoom() {
         createCard('/demo', 'card8', '.', roundRand(600), roundRand(300), Math.random() * 10 - 5, 'green');
     });
 }
+
+function exportJson(client, data) {
+    var result = new Array();
+    getRoom(client, function(room) {
+        db.getAllCards(room, function(cards) {
+            db.getAllColumns(room, function(columns) {
+                db.getTheme(room, function(theme) {
+                    db.getBoardSize(room, function(size) {
+                        if (theme === null) theme = 'bigcards';
+                        if (size === null) size = { width: data.width, height: data.height };
+                        result = JSON.stringify({
+                            cards: cards,
+                            columns: columns,
+                            theme: theme,
+                            size: size
+                        });
+                        client.json.send({
+                            action: 'export',
+                            data: {
+                                filename: room.replace('/', '') + '.json',
+                                text: result
+                            }
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
+
 //
 
 /**************
