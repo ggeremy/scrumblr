@@ -5,7 +5,8 @@ var currentTheme = "bigcards";
 var boardInitialized = false;
 var keyTrap = null;
 
-var socket = io.connect();
+var baseurl = location.pathname.substring(0, location.pathname.lastIndexOf('/'));
+var socket = io.connect({ path: baseurl + "/socket.io" });
 
 //an action has happened, send it to the
 //server
@@ -23,11 +24,11 @@ function sendAction(a, d) {
 socket.on('connect', function() {
     //console.log('successful socket.io connect');
 
-    //let the path be the room name
-    var path = location.pathname;
+    //let the final part of the path be the room name
+    var room = location.pathname.substring(location.pathname.lastIndexOf('/'));
 
     //imediately join the room which will trigger the initializations
-    sendAction('joinRoom', path);
+    sendAction('joinRoom', room);
 });
 
 socket.on('disconnect', function() {
@@ -40,7 +41,7 @@ socket.on('message', function(data) {
 });
 
 function unblockUI() {
-    $.unblockUI({fadeOut: 50});
+    $.unblockUI({ fadeOut: 50 });
 }
 
 function blockUI(message) {
@@ -166,8 +167,8 @@ function drawNewCard(id, text, x, y, rot, colour, sticker, animationspeed) {
         ' draggable" style="-webkit-transform:rotate(' + rot +
         'deg);\
 	">\
-	<img src="/images/icons/token/Xion.png" class="card-icon delete-card-icon" />\
-	<img class="card-image" src="/images/' +
+	<img src="images/icons/token/Xion.png" class="card-icon delete-card-icon" />\
+	<img class="card-image" src="images/' +
         colour + '-card.png">\
 	<div id="content:' + id +
         '" class="content stickertarget droppable">' +
@@ -202,7 +203,7 @@ function drawNewCard(id, text, x, y, rot, colour, sticker, animationspeed) {
                 return false;
             }
         },
-		handle: "div.content"
+        handle: "div.content"
     });
 
     //After a drag:
@@ -215,7 +216,7 @@ function drawNewCard(id, text, x, y, rot, colour, sticker, animationspeed) {
         var data = {
             id: this.id,
             position: ui.position,
-            oldposition: ui.originalPosition
+            oldposition: ui.originalPosition,
         };
 
         sendAction('moveCard', data);
@@ -245,7 +246,7 @@ function drawNewCard(id, text, x, y, rot, colour, sticker, animationspeed) {
     var speed = Math.floor(Math.random() * 1000);
     if (typeof(animationspeed) != 'undefined') speed = animationspeed;
 
-    var startPosition = $("#create-card").position();
+    var startPosition = $("#white-card").position();
 
     card.css('top', startPosition.top - card.height() * 0.5);
     card.css('left', startPosition.left - card.width() * 0.5);
@@ -295,7 +296,7 @@ function drawNewCard(id, text, x, y, rot, colour, sticker, animationspeed) {
         cssclass: 'card-edit-form',
         placeholder: 'Double Click to Edit.',
         onblur: 'submit',
-        event: 'dblclick' //event: 'mouseover'
+        event: 'dblclick', //event: 'mouseover'
     });
 
     //add applicable sticker
@@ -345,7 +346,13 @@ function addSticker(cardId, stickerId) {
 //----------------------------------
 // cards
 //----------------------------------
-function createCard(id, text, x, y, rot, colour) {
+function createCard(colour) {
+    var id = 'card' + generateUniqueId();
+    var text = '';
+    var x = 150;
+    var y = $('div.board-outline').height();
+    var rot = generateRandomRotation();
+    //alert(uniqueID);
     drawNewCard(id, text, x, y, rot, colour, null);
 
     var action = "createCard";
@@ -360,6 +367,15 @@ function createCard(id, text, x, y, rot, colour) {
     };
 
     sendAction(action, data);
+
+}
+
+function generateUniqueId() {
+    return Math.round(Math.random() * 99999999);
+}
+
+function generateRandomRotation() {
+    return Math.random() * 10 - 5;
 }
 
 function randomCardColour() {
@@ -369,7 +385,6 @@ function randomCardColour() {
 
     return colours[i];
 }
-
 
 function initCards(cardArray) {
     //first delete any cards that exist
@@ -422,8 +437,8 @@ function drawNewColumn(columnName) {
         onblur: 'submit',
         width: '',
         height: '',
-        xindicator: '<img src="/images/ajax-loader.gif">',
-        event: 'dblclick' //event: 'mouseover'
+        xindicator: '<img src="images/ajax-loader.gif">',
+        event: 'dblclick', //event: 'mouseover'
     });
 
     $('.col:last').fadeIn(1500);
@@ -524,7 +539,7 @@ function initColumns(columnArray) {
 
 function changeThemeTo(theme) {
     currentTheme = theme;
-    $("link[title=cardsize]").attr("href", "/css/" + theme + ".css");
+    $("link[title=cardsize]").attr("href", "css/" + theme + ".css");
 }
 
 
@@ -679,39 +694,35 @@ function adjustCard(offsets, doSync) {
 
 $(function() {
 
-    /**
-     * @returns {number} random rotation (+/- 10deg)
-     */
-    function randomRotation() {
-        return Math.random() * 10 - 5;
-    }
 
-    /**
-     * @returns {number}
-     */
-    function getUniqueId() {
-        return Math.round(Math.random() * 99999999); // is this big enough to assure uniqueness?
-    }
-
-
-	//disable image dragging
-	//window.ondragstart = function() { return false; };
+    //disable image dragging
+    //window.ondragstart = function() { return false; };
 
 
     if (boardInitialized === false)
-        blockUI('<img src="/images/ajax-loader.gif" width=43 height=11/>');
+        blockUI('<img src="images/ajax-loader.gif" width=43 height=11/>');
 
     //setTimeout($.unblockUI, 2000);
 
 
-    $("#create-card")
+    $("#white-card")
         .click(function() {
-            createCard(
-                'card' + getUniqueId(),
-                '',
-                58, $('div.board-outline').height(), // hack - not a great way to get the new card coordinates, but most consistant ATM
-                randomRotation(),
-                randomCardColour());
+            createCard("white");
+        });
+
+    $("#blue-card")
+        .click(function() {
+            createCard("blue");
+        });
+
+    $("#green-card")
+        .click(function() {
+            createCard("green");
+        });
+
+    $("#yellow-card")
+        .click(function() {
+            createCard("yellow");
         });
 
 
@@ -818,7 +829,7 @@ $(function() {
         minWidth: 700,
         minHeight: 400,
         maxWidth: 3200,
-        maxHeight: 1800
+        maxHeight: 1800,
     });
 
     //A new scope for precalculating
@@ -849,22 +860,5 @@ $(function() {
         containment: 'parent'
     });
 
-    (function() {
-        var $board = $(document.getElementById('board')),
-            boardOffset = $board.offset(),
 
-            shadeWidth = 35,
-            rotationFix = 25;
-
-        $board.on('dblclick', function(event) {
-            createCard(
-                'card' + getUniqueId(),
-                '',
-                event.pageX - boardOffset.left - shadeWidth,
-                event.pageY - boardOffset.top - rotationFix,
-                randomRotation(),
-                randomCardColour()
-            );
-        });
-    }());
 });

@@ -1,11 +1,18 @@
-FROM hepsw/slc-base:6.5
+FROM node:latest
 
-RUN yum upgrade -y; yum install -y nodejs redis git npm
+RUN apt-get update && apt-get install -y unzip \
+    && apt-get install -y redis-server \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN cd /opt && git clone https://github.com/vaclavbohac/scrumblr
+RUN mkdir /opt/scrumblr
+COPY code /opt/scrumblr
 
 WORKDIR /opt/scrumblr
+RUN chmod +x start.sh
 RUN npm install
 
-CMD chown redis /var/lib/redis && service redis start && npm start
 
+#ENTRYPOINT ["node", "server.js", "--port", "8080", "--redis", "redis://localhost:6379"]
+EXPOSE 8080
+ENTRYPOINT [ "./start.sh" ]
