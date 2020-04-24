@@ -735,6 +735,23 @@ $(function() {
         });
     })
 
+    $('#import-json').click(function(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        $("#dialog").css("display", "none");
+
+        var f = $('#import-input').get(0).files[0];
+        var fr = new FileReader();
+        fr.onloadend = function() {
+            var text = fr.result;
+            socket.json.send({
+                action: 'importJson',
+                data: JSON.parse(text)
+            });
+        };
+        fr.readAsBinaryString(f);
+    })
+
     $("#white-card")
         .click(function() {
             createCard("white");
@@ -895,5 +912,11 @@ $(function() {
         containment: 'parent'
     });
 
+    $("#import-modal").click(function() {
+        $("#dialog").css("display", "block");
+    })
 
+    $("#close").click(function() {
+        $("#dialog").css("display", "none");
+    })
 });

@@ -11,6 +11,13 @@ block body
 	div.config
 		//i.fa.fa-cog.fa-lg.faded-icon
 		i#export-json.fa.fa-download.fa-lg.faded-icon
+		i#import-modal.fa.fa-upload.fa-lg.faded-icon
+
+	div#dialog.modal
+		div.modal-content
+			span#close.close &times;
+			input(type="file")#import-input
+			i#import-json.fa.fa-upload.fa-lg.faded-icon
 
 	div.board-outline
 		div#board
