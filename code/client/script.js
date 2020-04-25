@@ -4,6 +4,14 @@ var columns = [];
 var currentTheme = "bigcards";
 var boardInitialized = false;
 var keyTrap = null;
+var templates = {
+    scrumboard: ['US', 'TODO', "WIP", "DONE"],
+    pi: ['Objectifs', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'Risks'],
+    startstopcontinue: ['Start', 'Stop', 'Continue'],
+    madsadglad: ['Mad', 'Sad', 'Glad'],
+    prosandcons: ['Pros', 'Cons'],
+}
+
 
 var baseurl = location.pathname.substring(0, location.pathname.lastIndexOf('/'));
 var socket = io.connect({ path: baseurl + "/socket.io" });
@@ -353,7 +361,7 @@ function addSticker(cardId, stickerId) {
 function createCard(colour) {
     var id = 'card' + generateUniqueId();
     var text = '';
-    var x = 250;
+    var x = 300;
     var y = $('div.board-outline').height();
     var rot = generateRandomRotation();
     //alert(uniqueID);
@@ -472,16 +480,33 @@ function onColumnChange(id, text) {
     updateColumns(names);
 }
 
-function displayRemoveColumn() {
+function displayRemoveColumn(duration = 150) {
     if (totalcolumns <= 0) return false;
 
-    $('.col:last').fadeOut(150,
+    $('.col:last').fadeOut(duration,
         function() {
             $(this).remove();
         }
     );
 
     totalcolumns--;
+}
+
+function changeTemplate(templateName) {
+    var data = templates[templateName];
+    var columnstodel = totalcolumns;
+
+    for (i = 0; i < columnstodel; i++) {
+        displayRemoveColumn(0);
+        columns.pop();
+    }
+
+    data.forEach(name => {
+        drawNewColumn(name);
+        columns.push(name);
+    })
+
+    sendAction('updateColumns', data);
 }
 
 function createColumn(name) {
@@ -743,7 +768,7 @@ $(function() {
     $('#import-json').click(function(evt) {
         evt.stopPropagation();
         evt.preventDefault();
-        $("#dialog").css("display", "none");
+        $("#import-dialog").css("display", "none");
 
         var f = $('#import-input').get(0).files[0];
         var fr = new FileReader();
@@ -918,10 +943,26 @@ $(function() {
     });
 
     $("#import-modal").click(function() {
-        $("#dialog").css("display", "block");
+        $("#import-dialog").css("display", "block");
     })
 
-    $("#close").click(function() {
-        $("#dialog").css("display", "none");
+    $("#import-close").click(function() {
+        $("#import-dialog").css("display", "none");
     })
+
+    $("#template-modal").click(function() {
+        $("#template-dialog").css("display", "block");
+    })
+
+    $("#template-close").click(function() {
+        $("#template-dialog").css("display", "none");
+    })
+
+    $("#template-select").change(function() {
+        $("#template-dialog").css("display", "none");
+        var template = $("#template-select option:selected").val();
+        changeTemplate(template);
+        return false;
+    });
+
 });

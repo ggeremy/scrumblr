@@ -778,6 +778,10 @@ img {
     padding: 30px;
 }
 
+#template-select {
+    width: 100%;
+}
+
 
 /* The Close Button */
 
@@ -796,6 +800,22 @@ img {
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+.modal-button {
+    padding: 10px;
+    margin: 0 5px;
+    border: 1px solid black;
+    width: 100px;
+}
+
+.modal-button:hover,
+.modal-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: grey;
+    font-weight: bold;
 }
 
 .config i.fa {
