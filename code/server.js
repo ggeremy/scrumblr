@@ -80,26 +80,24 @@ router.get('/:id', function(req, res) {
 });
 
 
+function scrub(text) {
+    if (typeof text != "undefined" && text !== null) {
+
+        //clip the string if it is too long
+        if (text.length > 65535) {
+            text = text.substr(0, 65535);
+        }
+
+        return sanitizer.sanitize(text);
+    } else {
+        return null;
+    }
+}
+
 /**************
  SOCKET.I0
 **************/
 io.sockets.on('connection', function(client) {
-    //santizes text
-    function scrub(text) {
-        if (typeof text != "undefined" && text !== null) {
-
-            //clip the string if it is too long
-            if (text.length > 65535) {
-                text = text.substr(0, 65535);
-            }
-
-            return sanitizer.sanitize(text);
-        } else {
-            return null;
-        }
-    }
-
-
 
     client.on('message', function(message) {
         //console.log(message.action + " -- " + sys.inspect(message.data) );
@@ -296,6 +294,14 @@ io.sockets.on('connection', function(client) {
                 broadcastToRoom(client, { action: 'setBoardSize', data: size });
                 break;
 
+            case 'exportJson':
+                exportJson(client, message.data);
+                break;
+
+            case 'importJson':
+                importJson(client, message.data);
+                break;
+
             default:
                 //console.log('unknown action');
                 break;
@@ -465,6 +471,110 @@ function cleanAndInitializeDemoRoom() {
         createCard('/demo', 'card8', '.', roundRand(600), roundRand(300), Math.random() * 10 - 5, 'green');
     });
 }
+
+function exportJson(client, data) {
+    var result = new Array();
+    getRoom(client, function(room) {
+        db.getAllCards(room, function(cards) {
+            db.getAllColumns(room, function(columns) {
+                db.getTheme(room, function(theme) {
+                    db.getBoardSize(room, function(size) {
+                        if (theme === null) theme = 'bigcards';
+                        if (size === null) size = { width: data.width, height: data.height };
+                        result = JSON.stringify({
+                            cards: cards,
+                            columns: columns,
+                            theme: theme,
+                            size: size
+                        });
+                        client.json.send({
+                            action: 'export',
+                            data: {
+                                filename: room.replace('/', '') + '.json',
+                                text: result
+                            }
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
+
+// Import board from json
+function importJson(client, data) {
+    getRoom(client, function(room) {
+        db.clearRoom(room, function() {
+            db.getAllCards(room, function(cards) {
+                for (var i = 0; i < cards.length; i++) {
+                    db.deleteCard(room, cards[i].id);
+                }
+
+                cards = data.cards;
+                var cards2 = new Array();
+                for (var i = 0; i < cards.length; i++) {
+                    var card = cards[i];
+                    if (card.id !== undefined && card.colour !== undefined &&
+                        card.rot !== undefined && card.x !== undefined &&
+                        card.y !== undefined && card.text !== undefined &&
+                        card.sticker !== undefined) {
+                        var c = {
+                            id: card.id,
+                            colour: card.colour,
+                            rot: card.rot,
+                            x: card.x,
+                            y: card.y,
+                            text: scrub(card.text),
+                            sticker: card.sticker
+                        };
+                        db.createCard(room, c.id, c);
+                        cards2.push(c);
+                    }
+                }
+                var msg = { action: 'initCards', data: cards2 };
+                broadcastToRoom(client, msg);
+                client.json.send(msg);
+            });
+
+            db.getAllColumns(room, function(columns) {
+                for (var i = 0; i < columns.length; i++) {
+                    db.deleteColumn(room);
+                }
+
+                columns = data.columns;
+                var columns2 = new Array();
+                for (var i = 0; i < columns.length; i++) {
+                    var column = scrub(columns[i]);
+                    if (typeof(column) === 'string') {
+                        db.createColumn(room, column);
+                        columns2.push(column);
+                    }
+                }
+                msg = { action: 'initColumns', data: columns2 };
+                broadcastToRoom(client, msg);
+                client.json.send(msg);
+            });
+
+            var size = data.size;
+            if (size.width !== undefined && size.height !== undefined) {
+                size = { width: scrub(size.width), height: scrub(size.height) };
+                db.setBoardSize(room, size);
+                msg = { action: 'setBoardSize', data: size };
+                broadcastToRoom(client, msg);
+                client.json.send(msg);
+            }
+
+            data.theme = scrub(data.theme);
+            if (data.theme === 'smallcards' || data.theme === 'bigcards') {
+                db.setTheme(room, data.theme);
+                msg = { action: 'changeTheme', data: data.theme };
+                broadcastToRoom(client, msg);
+                client.json.send(msg);
+            }
+        });
+    });
+}
+
 //
 
 /**************

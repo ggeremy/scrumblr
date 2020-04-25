@@ -31,8 +31,8 @@ var db = function(callback) {
 
 db.prototype = {
     clearRoom: function(room, callback) {
-        redisClient.del(REDIS_PREFIX + '-room:/demo-cards', function(err, res) {
-            redisClient.del(REDIS_PREFIX + '-room:/demo-columns', function(err, res) {
+        redisClient.del(REDIS_PREFIX + '-room:' + room + '-cards', function(err, res) {
+            redisClient.del(REDIS_PREFIX + '-room:' + room + '-columns', function(err, res) {
                 callback();
             });
         });

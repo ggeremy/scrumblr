@@ -4,6 +4,14 @@ var columns = [];
 var currentTheme = "bigcards";
 var boardInitialized = false;
 var keyTrap = null;
+var templates = {
+    scrumboard: ['US', 'TODO', "WIP", "DONE"],
+    pi: ['Objectifs', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'Risks'],
+    startstopcontinue: ['Start', 'Stop', 'Continue'],
+    madsadglad: ['Mad', 'Sad', 'Glad'],
+    prosandcons: ['Pros', 'Cons'],
+}
+
 
 var baseurl = location.pathname.substring(0, location.pathname.lastIndexOf('/'));
 var socket = io.connect({ path: baseurl + "/socket.io" });
@@ -56,7 +64,7 @@ function blockUI(message) {
             backgroundColor: '#000',
             '-webkit-border-radius': '10px',
             '-moz-border-radius': '10px',
-            opacity: 0.5,
+            opacity: 1,
             color: '#fff',
             fontSize: '20px'
         },
@@ -145,6 +153,10 @@ function getMessage(m) {
 
         case 'setBoardSize':
             resizeBoard(message.data);
+            break;
+
+        case 'export':
+            download(message.data.filename, message.data.text);
             break;
 
         default:
@@ -349,7 +361,7 @@ function addSticker(cardId, stickerId) {
 function createCard(colour) {
     var id = 'card' + generateUniqueId();
     var text = '';
-    var x = 150;
+    var x = 300;
     var y = $('div.board-outline').height();
     var rot = generateRandomRotation();
     //alert(uniqueID);
@@ -468,16 +480,33 @@ function onColumnChange(id, text) {
     updateColumns(names);
 }
 
-function displayRemoveColumn() {
+function displayRemoveColumn(duration = 150) {
     if (totalcolumns <= 0) return false;
 
-    $('.col:last').fadeOut(150,
+    $('.col:last').fadeOut(duration,
         function() {
             $(this).remove();
         }
     );
 
     totalcolumns--;
+}
+
+function changeTemplate(templateName) {
+    var data = templates[templateName];
+    var columnstodel = totalcolumns;
+
+    for (i = 0; i < columnstodel; i++) {
+        displayRemoveColumn(0);
+        columns.pop();
+    }
+
+    data.forEach(name => {
+        drawNewColumn(name);
+        columns.push(name);
+    })
+
+    sendAction('updateColumns', data);
 }
 
 function createColumn(name) {
@@ -621,6 +650,9 @@ function updateName(sid, name) {
 function boardResizeHappened(event, ui) {
     var newsize = ui.size;
 
+    $(".stickers").width(newsize.width);
+    $(".rows").width(newsize.width);
+
     sendAction('setBoardSize', newsize);
 }
 
@@ -629,6 +661,8 @@ function resizeBoard(size) {
         height: size.height,
         width: size.width
     });
+    $(".stickers").width(size.width);
+    $(".rows").width(size.width);
 }
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -689,6 +723,23 @@ function adjustCard(offsets, doSync) {
     });
 }
 
+function download(filename, text) {
+    var element = document.createElement('a');
+    var mime = 'text/plain';
+    if (filename.match(/.csv$/)) {
+        mime = 'text/csv';
+    }
+    element.setAttribute('href', 'data:' + mime + ';charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
@@ -704,6 +755,32 @@ $(function() {
 
     //setTimeout($.unblockUI, 2000);
 
+    $('#export-json').click(function() {
+        socket.json.send({
+            action: 'exportJson',
+            data: {
+                width: $('.board-outline').css('width').replace('px', ''),
+                height: $('.board-outline').css('height').replace('px', '')
+            }
+        });
+    })
+
+    $('#import-json').click(function(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        $("#import-dialog").css("display", "none");
+
+        var f = $('#import-input').get(0).files[0];
+        var fr = new FileReader();
+        fr.onloadend = function() {
+            var text = fr.result;
+            socket.json.send({
+                action: 'importJson',
+                data: JSON.parse(text)
+            });
+        };
+        fr.readAsBinaryString(f);
+    })
 
     $("#white-card")
         .click(function() {
@@ -723,6 +800,11 @@ $(function() {
     $("#yellow-card")
         .click(function() {
             createCard("yellow");
+        });
+
+    $("#pink-card")
+        .click(function() {
+            createCard("pink");
         });
 
 
@@ -860,5 +942,27 @@ $(function() {
         containment: 'parent'
     });
 
+    $("#import-modal").click(function() {
+        $("#import-dialog").css("display", "block");
+    })
+
+    $("#import-close").click(function() {
+        $("#import-dialog").css("display", "none");
+    })
+
+    $("#template-modal").click(function() {
+        $("#template-dialog").css("display", "block");
+    })
+
+    $("#template-close").click(function() {
+        $("#template-dialog").css("display", "none");
+    })
+
+    $("#template-select").change(function() {
+        $("#template-dialog").css("display", "none");
+        var template = $("#template-select option:selected").val();
+        changeTemplate(template);
+        return false;
+    });
 
 });

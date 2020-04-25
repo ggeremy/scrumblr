@@ -13,5 +13,7 @@ WORKDIR /opt/scrumblr
 RUN chmod +x start.sh
 RUN npm install
 
+VOLUME /var/lib/redis
 EXPOSE 8080
+
 ENTRYPOINT [ "./start.sh" ]
