@@ -56,7 +56,7 @@ function blockUI(message) {
             backgroundColor: '#000',
             '-webkit-border-radius': '10px',
             '-moz-border-radius': '10px',
-            opacity: 0.5,
+            opacity: 1,
             color: '#fff',
             fontSize: '20px'
         },
@@ -353,7 +353,7 @@ function addSticker(cardId, stickerId) {
 function createCard(colour) {
     var id = 'card' + generateUniqueId();
     var text = '';
-    var x = 150;
+    var x = 250;
     var y = $('div.board-outline').height();
     var rot = generateRandomRotation();
     //alert(uniqueID);

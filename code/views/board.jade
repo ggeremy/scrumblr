@@ -11,12 +11,6 @@ block body
 	//	i#export-json.fa.fa-download.fa-lg.faded-icon
 	//	i#import-modal.fa.fa-upload.fa-lg.faded-icon
 
-	div#dialog.modal
-		div.modal-content
-			span#close.close &times;
-			input(type="file")#import-input
-			i#import-json.fa.fa-upload.fa-lg.faded-icon
-
 	div.board-outline
 		div#board
 			div#board-doodles
@@ -77,6 +71,16 @@ block body
 			input#yourname-input
 			span.you-text (you)
 			ul#names-ul
+
+	div#dialog.modal
+		div.modal-content
+			div.modal-header
+				span.modal-title Import JSON file
+				span#close.modal-close &times;
+			div.modal-body
+				input(type="file")#import-input
+			div.modal-footer
+				i#import-json.fa.fa-upload.fa-2x.faded-icon
 
 	//div.trash
 	//	i.fa.fa-trash-o.fa-lg.faded-icon

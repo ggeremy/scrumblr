@@ -743,24 +743,56 @@ img {
     background-color: #fefefe;
     margin: 15% auto;
     /* 15% from the top and centered */
-    padding: 20px;
     border: 1px solid #888;
-    width: 80%;
+    width: 300px;
     /* Could be more or less, depending on screen size */
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    height: 50px;
+    border-bottom: 1px solid black;
+    background-color: #ddd;
+}
+
+.modal-title {
+    margin: auto 0;
+    padding: 10px;
+    font-weight: bolder;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: space-evenly;
+    height: 50px;
+    border-top: 1px solid black;
+    background-color: #ddd;
+}
+
+.modal-footer * {
+    margin: auto 0;
+}
+
+.modal-body {
+    padding: 30px;
 }
 
 
 /* The Close Button */
 
-.close {
+.modal-close {
     color: #aaa;
     float: right;
     font-size: 28px;
     font-weight: bold;
+    text-align: center;
+    width: 50px;
+    margin: auto 0;
 }
 
-.close:hover,
-.close:focus {
+.modal-close:hover,
+.modal-close:focus {
     color: black;
     text-decoration: none;
     cursor: pointer;
